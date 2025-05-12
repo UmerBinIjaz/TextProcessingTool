@@ -1,0 +1,169 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.filechooser.*;
+import javax.swing.undo.UndoManager;
+
+public class TextProcessing extends JFrame implements ActionListener {
+
+    private JTextArea textArea;
+    private JScrollPane scrollPane;
+    private JLabel fontLabel;
+    private JSpinner fontSizeSpinner;
+    private JButton fontColorButton;
+    private JComboBox<String> fontBox;
+    private JLabel wordCountLabel;
+    private JButton undoButton;
+    private JButton redoButton;
+
+    private JMenuBar menuBar;
+    private JMenu fileMenu;
+    private JMenuItem openItem;
+    private JMenuItem saveItem;
+    private JMenuItem exitItem;
+
+    private UndoManager undoManager = new UndoManager();
+
+    public TextProcessing() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Text Processing Tool");
+        setSize(600, 600);
+        setLayout(new FlowLayout());
+        setLocationRelativeTo(null);
+
+        textArea = new JTextArea();
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setFont(new Font("Arial", Font.PLAIN, 20));
+        textArea.getDocument().addUndoableEditListener(e -> undoManager.addEdit(e.getEdit()));
+
+        scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 450));
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        fontLabel = new JLabel("Font:");
+
+        fontSizeSpinner = new JSpinner();
+        fontSizeSpinner.setPreferredSize(new Dimension(50, 25));
+        fontSizeSpinner.setValue(20);
+        fontSizeSpinner.addChangeListener(e -> {
+            textArea.setFont(new Font((String) fontBox.getSelectedItem(), Font.PLAIN, (int) fontSizeSpinner.getValue()));
+            updateWordCount();
+        });
+
+        fontColorButton = new JButton("Color");
+        fontColorButton.addActionListener(this);
+
+        String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+
+        fontBox = new JComboBox<>(fonts);
+        fontBox.addActionListener(this);
+        fontBox.setSelectedItem("Arial");
+
+        wordCountLabel = new JLabel("Word Count: 0");
+
+        undoButton = new JButton("Undo");
+        undoButton.addActionListener(e -> undoManager.undo());
+
+        redoButton = new JButton("Redo");
+        redoButton.addActionListener(e -> undoManager.redo());
+
+        // ----- menubar -----
+        menuBar = new JMenuBar();
+        fileMenu = new JMenu("File");
+        openItem = new JMenuItem("Open");
+        saveItem = new JMenuItem("Save");
+        exitItem = new JMenuItem("Exit");
+
+        openItem.addActionListener(this);
+        saveItem.addActionListener(this);
+        exitItem.addActionListener(this);
+
+        fileMenu.add(openItem);
+        fileMenu.add(saveItem);
+        fileMenu.add(exitItem);
+        menuBar.add(fileMenu);
+        // ----- /menubar -----
+
+        setJMenuBar(menuBar);
+        add(fontLabel);
+        add(fontSizeSpinner);
+        add(fontColorButton);
+        add(fontBox);
+        add(scrollPane);
+        add(wordCountLabel);
+        add(undoButton);
+        add(redoButton);
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == fontColorButton) {
+            JColorChooser colorChooser = new JColorChooser();
+            Color color = colorChooser.showDialog(null, "Choose a color", Color.black);
+            textArea.setForeground(color);
+        }
+
+        if (e.getSource() == fontBox) {
+            textArea.setFont(new Font((String) fontBox.getSelectedItem(), Font.PLAIN, textArea.getFont().getSize()));
+            updateWordCount();
+        }
+
+        if (e.getSource() == openItem) {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File("."));
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Text files", "txt");
+            fileChooser.setFileFilter(filter);
+
+            int response = fileChooser.showOpenDialog(null);
+
+            if (response == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                try (Scanner fileIn = new Scanner(file)) {
+                    if (file.isFile()) {
+                        textArea.setText(""); // Clear existing text
+                        while (fileIn.hasNextLine()) {
+                            String line = fileIn.nextLine() + "\n";
+                            textArea.append(line);
+                        }
+                        updateWordCount();
+                    }
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+        if (e.getSource() == saveItem) {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File("."));
+            int response = fileChooser.showSaveDialog(null);
+
+            if (response == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                try (PrintWriter fileOut = new PrintWriter(file)) {
+                    fileOut.println(textArea.getText());
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+        if (e.getSource() == exitItem) {
+            System.exit(0);
+        }
+    }
+
+    private void updateWordCount() {
+        String text = textArea.getText();
+        int wordCount = text.isEmpty() ? 0 : text.split("\\s+").length;
+        wordCountLabel.setText("Word Count: " + wordCount);
+    }
+
+    public static void main(String[] args) {
+        new TextProcessing();
+    }
+}

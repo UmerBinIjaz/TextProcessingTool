@@ -1,0 +1,11 @@
+To Go to Drive
+"cd /media/sf_OS_PROJECTS"
+
+To Compile a Code use
+"javac --module-path /usr/share/openjfx/lib --add-modules javafx.controls TextProcessing.java"
+
+To Run a Code use
+"java -cp .:/usr/share/openjfx/lib --module-path /usr/share/openjfx/lib --add-modules javafx.controls TextProcessing"
+
+To See a Code:
+"gedit TextProcessing.java"
