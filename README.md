@@ -36,13 +36,5 @@ The **TextProcessing** project is a simple text editor implemented in **Java** u
 * **Save:** Save current text to a file via file chooser.
 * **Exit:** Exit the application safely.
 
----
-
-## Screenshots
-
-![Editor Screenshot 1](https://github.com/user-attachments/assets/ce6a1b9a-a162-409c-965a-5f3b59c5e368)
-![Editor Screenshot 2](https://github.com/user-attachments/assets/29ff3ee0-024a-4bc0-9371-a474761a2aae)
-
----
 
 Would you like help converting this into a README.md file for GitHub?
